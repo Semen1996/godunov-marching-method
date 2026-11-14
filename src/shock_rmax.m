@@ -1,16 +1,16 @@
 function r = shock_rmax(M, gamma)
-  % Предельное отношение давлений на слабой ветви косого скачка (delta = delta_max)
+  % Limiting pressure ratio on the weak branch of an oblique shock (delta = delta_max)
   %
-  % Вход:
-  %   M     — число Маха набегающего потока, M > 1 (скаляр или массив)
-  %   gamma — показатель адиабаты (скаляр)
+  % Input:
+  %   M     — Mach number of the incoming flow, M > 1 (scalar or array)
+  %   gamma — ratio of specific heats (scalar)
   %
-  % Выход:
-  %   r     — отношение давлений p2/p1 за скачком при максимальном угле
-  %           поворота потока delta_max, массив того же размера, что M
+  % Output:
+  %   r     — pressure ratio p2/p1 across the shock at the maximum flow
+  %           turning angle delta_max, array of the same size as M
 
   M2 = M.^2;
-  % sin^2 угла скачка beta, при котором угол поворота delta максимален
+  % sin^2 of the shock angle beta at which the turning angle delta is maximal
   sinB2 = ((gamma+1)*M2 - 4 + sqrt((gamma+1)*((gamma+1)*M2.^2 + 8*(gamma-1)*M2 + 16)))./(4*gamma*M2);
   r = 1 + 2*gamma/(gamma+1)*(M2.*sinB2 - 1);
 end

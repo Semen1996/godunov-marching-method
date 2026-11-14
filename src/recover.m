@@ -1,29 +1,28 @@
 function [p, rho, u, v, Dmin] = recover(F, gamma)
-  % Переход от вектора потоков F к параметрам газа (раздел 4)
+  % Conversion from the flux vector F to gas parameters (section 4)
   %
-  % Обращение flux_x. Из F сразу следуют v = F3/F1, H = F4/F1 и
-  % P = F2/F1 = u + p/(rho*u); для u остаётся квадратное уравнение
+  % Inverse of flux_x. F directly gives v = F3/F1, H = F4/F1 and
+  % P = F2/F1 = u + p/(rho*u); for u a quadratic equation remains
   %   (gamma+1)*u^2 - 2*gamma*P*u + 2*(gamma-1)*(H - v^2/2) = 0
-  % с дискриминантом (делённым на 4) D = gamma^2*P^2 - 2*(gamma^2-1)*(H - v^2/2).
-  % Берётся больший корень — он отвечает сверхзвуковой по x скорости
-  % (меньший — дозвуковой). Затем p = F2 - F1*u, rho = F1/u.
+  % with discriminant (divided by 4) D = gamma^2*P^2 - 2*(gamma^2-1)*(H - v^2/2).
+  % The larger root is taken — it corresponds to a velocity supersonic in x
+  % (the smaller one is subsonic). Then p = F2 - F1*u, rho = F1/u.
   %
-  % Вход:
-  %   F    — [n x 4] вектор потоков через сечение x = const
+  % Input:
+  %   F    — [n x 4] flux vector through the cross-section x = const
   %          [rho*u, p + rho*u^2, rho*u*v, rho*u*H]
-  %          (каждая строка — отдельная ячейка), F(:,1) > 0
-  %   gamma — показатель адиабаты (скаляр)
+  %          (each row is a separate cell), F(:,1) > 0
+  %   gamma — ratio of specific heats (scalar)
   %
-  % Выход:
-  %   p    — [n x 1] давление
-  %   rho  — [n x 1] плотность
-  %   u    — [n x 1] x-компонента скорости
-  %   v    — [n x 1] y-компонента скорости
-  %   Dmin — наименьшее по всем ячейкам значение D (скаляр). При Dmin < 0
-  %          хотя бы в одной ячейке нет вещественного корня (такому F не
-  %          отвечает никакое состояние газа); функция ошибку не выдаёт,
-  %          а считает u при D = 0 — проверка Dmin остаётся за вызывающим
-  %          кодом.
+  % Output:
+  %   p    — [n x 1] pressure
+  %   rho  — [n x 1] density
+  %   u    — [n x 1] x velocity component
+  %   v    — [n x 1] y velocity component
+  %   Dmin — smallest value of D over all cells (scalar). If Dmin < 0,
+  %          at least one cell has no real root (no gas state corresponds
+  %          to such F); the function does not raise an error but computes
+  %          u with D = 0 — checking Dmin is left to the calling code.
 
   v = F(:,3)./F(:,1);
   H = F(:,4)./F(:,1);

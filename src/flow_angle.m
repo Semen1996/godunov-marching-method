@@ -1,14 +1,14 @@
 function th = flow_angle(u, v)
-  % Угол наклона вектора скорости к оси x
+  % Inclination angle of the velocity vector to the x axis
   %
-  % Вход:
-  %   u  — x-компонента скорости (скаляр или массив)
-  %   v  — y-компонента скорости (скаляр или массив того же размера, что u)
+  % Input:
+  %   u  — x velocity component (scalar or array)
+  %   v  — y velocity component (scalar or array of the same size as u)
   %
-  % Выход:
-  %   th — угол между вектором (u, v) и осью x в радианах, в диапазоне
-  %        [-pi, pi]; массив того же размера, что u и v.
-  %        th > 0 при v > 0 (поток отклонён вверх от оси x).
+  % Output:
+  %   th — angle between the vector (u, v) and the x axis in radians, in the
+  %        range [-pi, pi]; array of the same size as u and v.
+  %        th > 0 for v > 0 (flow deflected upward from the x axis).
 
   th = atan2(v, u);
 end

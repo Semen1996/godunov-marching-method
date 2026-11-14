@@ -1,15 +1,15 @@
 function H = total_enthalpy(p, rho, u, v, gamma)
-  % Полная энтальпия единицы массы совершенного газа
+  % Total enthalpy per unit mass of a perfect gas
   %
-  % Вход:
-  %   p     — давление (скаляр или массив)
-  %   rho   — плотность (скаляр или массив того же размера, что p)
-  %   u     — x-компонента скорости (скаляр или массив того же размера, что p)
-  %   v     — y-компонента скорости (скаляр или массив того же размера, что p)
-  %   gamma — показатель адиабаты (скаляр)
+  % Input:
+  %   p     — pressure (scalar or array)
+  %   rho   — density (scalar or array of the same size as p)
+  %   u     — x velocity component (scalar or array of the same size as p)
+  %   v     — y velocity component (scalar or array of the same size as p)
+  %   gamma — ratio of specific heats (scalar)
   %
-  % Выход:
-  %   H     — полная энтальпия (массив того же размера, что p)
+  % Output:
+  %   H     — total enthalpy (array of the same size as p)
 
   H = gamma/(gamma-1)*p./rho + 0.5*(u.^2 + v.^2);
 end

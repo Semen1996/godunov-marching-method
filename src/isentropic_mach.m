@@ -1,17 +1,17 @@
 function M = isentropic_mach(r, Mk, gamma)
-  % число Маха после изоэнтропического расширения до p = r*p_k
+  % Mach number after isentropic expansion to p = r*p_k
   %
-  % Входные параметры:
-  %   r     - отношение давлений p/p_k (скаляр или массив); при расширении r < 1
-  %   Mk    - число Маха до расширения, при давлении p_k (скаляр или массив
-  %           того же размера, что r)
-  %   gamma - показатель адиабаты (скаляр)
+  % Input:
+  %   r     — pressure ratio p/p_k (scalar or array); r < 1 for expansion
+  %   Mk    — Mach number before expansion, at pressure p_k (scalar or array
+  %           of the same size as r)
+  %   gamma — ratio of specific heats (scalar)
   %
-  % Выходные параметры:
-  %   M     - число Маха после расширения до давления p = r*p_k
-  %           (того же размера, что r и Mk)
+  % Output:
+  %   M     — Mach number after expansion to pressure p = r*p_k
+  %           (same size as r and Mk)
   %
-  % Формула следует из сохранения полной температуры и изоэнтропы:
+  % The formula follows from conservation of total temperature and the isentrope:
   %   1 + (gamma-1)/2*M^2 = (1 + (gamma-1)/2*Mk^2) * r^(-(gamma-1)/gamma)
 
   M = sqrt(2/(gamma-1)*((1 + 0.5*(gamma-1)*Mk.^2).*r.^(-(gamma-1)/gamma) - 1));

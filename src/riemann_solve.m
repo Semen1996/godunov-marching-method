@@ -1,26 +1,26 @@
 function [WLS, WRS] = riemann_solve(WL, WR, gamma)
-  % точное решение стационарной задачи о распаде разрыва
+  % exact solution of the steady discontinuity breakup problem
   %
-  % Нижний поток W_L, верхний W_R. Решение: волна C- в нижнем потоке, линия
-  % скольжения (p*, theta*), волна C+ в верхнем. Давление p* — корень
+  % Lower flow W_L, upper flow W_R. Solution: C- wave in the lower flow, slip
+  % line (p*, theta*), C+ wave in the upper flow. The pressure p* is the root of
   %   Theta(p) = f_L(p) + f_R(p) - (theta_L - theta_R) = 0
-  % (Ньютон с защитой делением пополам).
+  % (Newton's method safeguarded by bisection).
   %
-  % Вход:
-  %   WL — [n x 4] параметры нижнего потока [p, rho, q, theta]: давление,
-  %        плотность, модуль скорости и угол её наклона к оси x, рад
-  %        (каждая строка — отдельная задача, n задач решаются векторно)
-  %   WR — [n x 4] параметры верхнего потока [p, rho, q, theta]
-  %   gamma  — показатель адиабаты (скаляр)
+  % Input:
+  %   WL — [n x 4] lower flow parameters [p, rho, q, theta]: pressure,
+  %        density, speed magnitude and its inclination angle to the x axis, rad
+  %        (each row is a separate problem, n problems are solved vectorized)
+  %   WR — [n x 4] upper flow parameters [p, rho, q, theta]
+  %   gamma  — ratio of specific heats (scalar)
   %
-  % Выход:
-  %   WLS — [n x 4] состояние за волной C- (снизу от линии скольжения),
+  % Output:
+  %   WLS — [n x 4] state behind the C- wave (below the slip line),
   %         [p*, rho, q, theta*]
-  %   WRS — [n x 4] состояние за волной C+ (сверху от линии скольжения),
+  %   WRS — [n x 4] state behind the C+ wave (above the slip line),
   %         [p*, rho, q, theta*]
   %
-  % Ошибки: отход скачка (требуемый поворот больше delta_max), образование
-  % вакуума, неположительный квадрат скорости за волной.
+  % Errors: shock detachment (required turning exceeds delta_max), vacuum
+  % formation, non-positive squared speed behind a wave.
 
 
   pL = WL(:,1);
@@ -41,29 +41,29 @@ function [WLS, WRS] = riemann_solve(WL, WR, gamma)
 
   n = numel(pL);
 
-  % Верхняя граница поиска p*. Давление за присоединённым косым скачком
-  % не может превышать p_k*shock_rmax(M_k): это скачок с предельным углом
-  % поворота delta_max. Если p* больше, скачок отходит. Поэтому p* ищем
-  % на отрезке 0 < p* <= hi, где hi — меньшее из двух предельных давлений
-  % (раздел 5.7).
+  % Upper bound of the search for p*. The pressure behind an attached oblique
+  % shock cannot exceed p_k*shock_rmax(M_k): this is the shock with the limiting
+  % turning angle delta_max. If p* is larger, the shock detaches. Hence p* is
+  % sought on the interval 0 < p* <= hi, where hi is the smaller of the two
+  % limiting pressures (section 5.7).
   hi = min(pL.*shock_rmax(ML, gamma), pR.*shock_rmax(MR, gamma));
 
   if any(wave_f(hi, pL, ML, gamma) + wave_f(hi, pR, MR, gamma) - dth < 0)
-    error('riemann_solve: отход скачка (требуемый поворот больше delta_max)');
+    error('riemann_solve: shock detachment (required turning exceeds delta_max)');
   end
 
-  % Проверка на вакуум. wmax = nu(M -> inf) — предельный угол Прандтля–Майера,
-  % на который поток поворачивает при расширении до p = 0. Поток k может
-  % повернуть ещё на wmax - nu(M_k), значит потоки могут разойтись не более
-  % чем на 2*wmax - nu(M_L) - nu(M_R). Если thR - thL больше, между ними вакуум.
-  % (раздел 5.7).
+  % Vacuum check. wmax = nu(M -> inf) is the limiting Prandtl–Meyer angle
+  % through which the flow turns when expanding to p = 0. Flow k can turn
+  % a further wmax - nu(M_k), so the flows can diverge by at most
+  % 2*wmax - nu(M_L) - nu(M_R). If thR - thL is larger, there is vacuum between them
+  % (section 5.7).
   wmax = 0.5*pi*(sqrt((gamma+1)/(gamma-1)) - 1);
 
   if any(prandtl_meyer_angle(ML, gamma) + prandtl_meyer_angle(MR, gamma) - 2*wmax - dth > 0)
-    error('riemann_solve: образование вакуума между потоками');
+    error('riemann_solve: vacuum formation between the flows');
   end
 
-  % начальное приближение — линейная теория
+  % initial guess — linear theory
   lo = zeros(n, 1);
   ZL = sqrt(ML.^2 - 1)./(gamma*pL.*ML.^2);
   ZR = sqrt(MR.^2 - 1)./(gamma*pR.*MR.^2);
@@ -91,7 +91,7 @@ function [WLS, WRS] = riemann_solve(WL, WR, gamma)
     end
   end
 
-  % параметры за волнами (раздел 5.5)
+  % parameters behind the waves (section 5.5)
   fL = wave_f(p, pL, ML, gamma);
   fR = wave_f(p, pR, MR, gamma);
   thS = 0.5*((thL - fL) + (thR + fR));
@@ -101,12 +101,12 @@ end
 
 function W = star_state(pS, pk, rhok, Hk, thS, gamma)
   r = pS./pk;
-  rho = rhok.*r.^(1/gamma);                                  % разрежение
-  k = r >= 1;                                                % скачок
+  rho = rhok.*r.^(1/gamma);                                  % rarefaction
+  k = r >= 1;                                                % shock
   rho(k) = rhok(k).*((gamma+1)*r(k) + gamma - 1)./((gamma-1)*r(k) + gamma + 1);
   q2 = 2*Hk - 2*gamma/(gamma-1)*pS./rho;
   if any(q2 <= 0)
-    error('riemann_solve: неположительный квадрат скорости за волной');
+    error('riemann_solve: non-positive squared speed behind a wave');
   end
   q = sqrt(q2);
   W = [pS, rho, q, thS];

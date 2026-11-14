@@ -1,13 +1,13 @@
 function q = flow_speed(u, v)
-  % Модуль скорости
+  % Speed magnitude
   %
-  % Вход:
-  %   u — x-компонента скорости (скаляр или массив)
-  %   v — y-компонента скорости (скаляр или массив того же размера, что u)
+  % Input:
+  %   u — x velocity component (scalar or array)
+  %   v — y velocity component (scalar or array of the same size as u)
   %
-  % Выход:
-  %   q — модуль вектора скорости (u, v), q >= 0; массив того же размера,
-  %       что u
+  % Output:
+  %   q — magnitude of the velocity vector (u, v), q >= 0; array of the same
+  %       size as u
 
   q = sqrt(u.^2 + v.^2);
 end

@@ -2,40 +2,40 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Проект
+## Project
 
-Расчёт плоской нерасчётной сверхзвуковой струи (p_j/p_a > 1) маршевым методом Годунова с точным решением стационарной задачи о распаде разрыва. Код на GNU Octave (используется Octave-специфичный синтаксис, например `figure(1, 'Position', ...)`), сборки, тестов и линтера нет.
+Computation of a planar underexpanded supersonic jet (p_j/p_a > 1) by the Godunov marching method with the exact solution of the steady discontinuity breakup problem. The code is GNU Octave (Octave-specific syntax is used, e.g. `figure(1, 'Position', ...)`); there is no build, no tests and no linter.
 
-## Запуск
+## Running
 
-Единственная точка входа — скрипт `src/main.m` (начинается с `clear`, параметры задачи — в его начале: `gamma`, `M`, `npr`, `N`, `kappa`, `every`, геометрия `w_noz`, `x_len`):
+The only entry point is the script `src/main.m` (it starts with `clear`; the problem parameters are at its beginning: `gamma`, `M`, `npr`, `N`, `kappa`, `every`, geometry `w_noz`, `x_len`):
 
 ```sh
-cd src && octave --persist main.m      # --persist, чтобы окно графика не закрылось
+cd src && octave --persist main.m      # --persist keeps the plot window open
 ```
 
-или из сессии Octave: `cd src; main`. Все функции лежат в `src/` и находятся по пути только при запуске из этой папки (или после `addpath('src')`).
+or from an Octave session: `cd src; main`. All functions live in `src/` and are on the path only when run from that folder (or after `addpath('src')`).
 
-## Документация
+## Documentation
 
-`docs/physics.md` — подробное описание метода (уравнения, сетка, схема, распад разрыва, граничные условия, выбор шага, алгоритм). Комментарии в коде ссылаются на его разделы («раздел 5.6», «раздел 6.3» и т. п.) — при изменении алгоритма сверяться с ним и держать ссылки согласованными.
+`docs/physics.md` is a detailed description of the method (equations, grid, scheme, discontinuity breakup, boundary conditions, step choice, algorithm). The English version is `docs/physics-en.md`; section numbering is the same. Code comments refer to its sections ("section 5.6", "section 6.3", etc.) — when changing the algorithm, check against it and keep the references consistent.
 
-## Архитектура
+## Architecture
 
-Маршевая координата x играет роль времени. Состояние на слое — N ячеек поперёк верхней полуструи между осью (y = 0) и свободной границей y_e(x); узлы распределены равномерно, `y = eta*ye`. Консервативные переменные — вектор потоков через сечение x = const, `F = [ρu, p+ρu², ρuv, ρuH]`, а не (ρ, ρu, …).
+The marching coordinate x plays the role of time. The state on a layer is N cells across the upper half-jet between the axis (y = 0) and the free boundary y_e(x); nodes are distributed uniformly, `y = eta*ye`. The conservative variables are the flux vector through the cross-section x = const, `F = [ρu, p+ρu², ρuv, ρuH]`, not (ρ, ρu, …).
 
-Цикл в `main.m` на каждом шаге (соответствует разделу 8 physics.md):
-1. Проверка маршевости `u > c` в каждой ячейке (иначе ошибка).
-2. Точные распады на внутренних гранях: `riemann_solve(WL, WR)` → состояния `WLS`, `WRS` по обе стороны линии скольжения.
-3. Граничные условия тоже через распады: `axis_boundary` (ось как зеркальное отражение ячейки 1, θ* = 0 → давление p_w) и `free_boundary` (волна C− до p = p_a → угол границы θ_b).
-4. Шаг dx — априорная оценка по наклонам линий Маха с коэффициентом `kappa` (раздел 7).
-5. Новый слой: сдвиг границы `ye + dx*tan(θ_b)`, наклоны граней `s`.
-6. Потоки через грани: `riemann_flux` выбирает зону автомодельного решения (L | C− | L* | линия скольжения | R* | C+ | R, включая внутренность веера) по лучу ξ = s и считает поток через `face_flux`.
-7. Схема `Fn = (h·F − dx·ΔΦ)/h_new`, затем `recover` обращает F → (p, ρ, u, v) по большему (сверхзвуковому) корню квадратного уравнения; `Dmin < 0` — ошибка (запирание).
+The loop in `main.m` at each step (corresponds to section 8 of physics.md):
+1. Marching check `u > c` in every cell (error otherwise).
+2. Exact breakups on interior faces: `riemann_solve(WL, WR)` → states `WLS`, `WRS` on both sides of the slip line.
+3. Boundary conditions also via breakups: `axis_boundary` (axis as a mirror image of cell 1, θ* = 0 → pressure p_w) and `free_boundary` (C− wave to p = p_a → boundary angle θ_b).
+4. Step dx — a priori estimate from Mach line slopes with the factor `kappa` (section 7).
+5. New layer: boundary shift `ye + dx*tan(θ_b)`, face slopes `s`.
+6. Fluxes through faces: `riemann_flux` selects the zone of the self-similar solution (L | C− | L* | slip line | R* | C+ | R, including the interior of a fan) by the ray ξ = s and computes the flux via `face_flux`.
+7. Scheme `Fn = (h·F − dx·ΔΦ)/h_new`, then `recover` inverts F → (p, ρ, u, v) using the larger (supersonic) root of a quadratic equation; `Dmin < 0` is an error (choking).
 
-Соглашения, общие для функций:
-- Внутри распадов состояние задаётся как `W = [p, rho, q, theta]` (модуль скорости и угол), в ячейках — `p, rho, u, v`; переход через `flow_speed`/`flow_angle`.
-- Функции векторизованы: массивы `[n x 4]`, одна строка — одна грань/ячейка.
-- `wave_f` — угол поворота f_k(p) и производная: косой скачок при p ≥ p_k, волна Прандтля–Майера при p < p_k. На нём держатся `riemann_solve` (Ньютон с защитой делением пополам), `axis_boundary`, `free_boundary`.
-- Отход скачка проверяется через `shock_rmax` (предельное p2/p1 при δ_max); ошибки отхода скачка и вакуума выдаются через `error`.
-- Комментарии и сообщения — на русском; в шапке каждой функции описаны вход/выход в едином формате — сохранять его в новых функциях.
+Conventions shared by the functions:
+- Inside breakups the state is `W = [p, rho, q, theta]` (speed magnitude and angle), in cells — `p, rho, u, v`; conversion via `flow_speed`/`flow_angle`.
+- Functions are vectorized: `[n x 4]` arrays, one row per face/cell.
+- `wave_f` is the turning angle f_k(p) and its derivative: oblique shock for p ≥ p_k, Prandtl–Meyer wave for p < p_k. `riemann_solve` (Newton safeguarded by bisection), `axis_boundary` and `free_boundary` all rely on it.
+- Shock detachment is checked via `shock_rmax` (limiting p2/p1 at δ_max); shock detachment and vacuum errors are raised with `error`.
+- Comments, error messages, console output and plot labels are in English (terminology as in `docs/physics-en.md`); each function header describes inputs/outputs in a uniform format (`Input:` / `Output:`) — keep it in new functions.

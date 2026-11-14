@@ -1,16 +1,16 @@
 function M = mach_number(p, rho, u, v, gamma)
-  % Число Маха
+  % Mach number
   %
-  % Вход:
-  %   p   — давление (скаляр или массив)
-  %   rho — плотность (скаляр или массив того же размера, что p)
-  %   u   — x-компонента скорости (скаляр или массив того же размера, что p)
-  %   v   — y-компонента скорости (скаляр или массив того же размера, что p)
-  %   gamma   — показатель адиабаты (скаляр)
+  % Input:
+  %   p   — pressure (scalar or array)
+  %   rho — density (scalar or array of the same size as p)
+  %   u   — x velocity component (scalar or array of the same size as p)
+  %   v   — y velocity component (scalar or array of the same size as p)
+  %   gamma   — ratio of specific heats (scalar)
   %
-  % Выход:
-  %   M   — число Маха, отношение модуля скорости к скорости звука;
-  %         массив того же размера, что p
+  % Output:
+  %   M   — Mach number, ratio of the speed magnitude to the speed of sound;
+  %         array of the same size as p
 
   M = flow_speed(u, v)./sound_speed(p, rho, gamma);
 end

@@ -1,23 +1,23 @@
 function [f, df] = wave_f(p, pk, Mk, gamma)
-  % угол поворота f_k(p) и его производная (разделы 5.2–5.4)
+  % flow turning angle f_k(p) and its derivative (sections 5.2–5.4)
   %
-  % Входные аргументы:
-  %   p     – давление за волной (массив)
-  %   pk    – давление перед волной, со стороны k (массив того же размера, что p)
-  %   Mk    – число Маха перед волной, со стороны k (массив того же размера, что p)
-  %   gamma – показатель адиабаты
+  % Input:
+  %   p     — pressure behind the wave (array)
+  %   pk    — pressure ahead of the wave, on side k (array of the same size as p)
+  %   Mk    — Mach number ahead of the wave, on side k (array of the same size as p)
+  %   gamma — ratio of specific heats
   %
-  % Выходные аргументы:
-  %   f     – угол поворота потока f_k(p): косой скачок при p >= pk,
-  %           волна разрежения Прандтля–Майера при p < pk
-  %   df    – производная df_k/dp
+  % Output:
+  %   f     — flow turning angle f_k(p): oblique shock for p >= pk,
+  %           Prandtl–Meyer rarefaction wave for p < pk
+  %   df    — derivative df_k/dp
 
   r = p./pk;
 
   f = zeros(size(p));
   df = f;
 
-  % косой скачок, p >= p_k
+  % oblique shock, p >= p_k
   s = r >= 1;
 
   M2 = Mk(s).^2;
@@ -41,7 +41,7 @@ function [f, df] = wave_f(p, pk, Mk, gamma)
   f(s)  = atan(t);
   df(s) = dt./(1 + t.^2)./pk(s);
 
-  % волна разрежения, p < p_k
+  % rarefaction wave, p < p_k
   e = ~s;
   M = isentropic_mach(r(e), Mk(e), gamma);
   f(e)  = prandtl_meyer_angle(Mk(e), gamma) - prandtl_meyer_angle(M, gamma);

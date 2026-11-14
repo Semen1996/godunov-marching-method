@@ -1,15 +1,15 @@
 function c = sound_speed(p, rho, gamma)
-  % Cкорость звука в совершенном газе
+  % Speed of sound in a perfect gas
   %
-  % Вход:
-  %   p   — давление (скаляр или массив)
-  %   rho — плотность (скаляр или массив того же размера, что p)
-  %   gamma   — показатель адиабаты gamma (скаляр)
+  % Input:
+  %   p   — pressure (scalar or array)
+  %   rho — density (scalar or array of the same size as p)
+  %   gamma   — ratio of specific heats gamma (scalar)
   %
-  % Выход:
-  %   c   — скорость звука, массив того же размера, что p и rho
+  % Output:
+  %   c   — speed of sound, array of the same size as p and rho
   %
-  % Все величины в согласованных единицах (в main.m — безразмерные).
+  % All quantities in consistent units (dimensionless in main.m).
 
   c = sqrt(gamma*p./rho);
 end
